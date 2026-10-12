@@ -1,5 +1,5 @@
 import os
-import mysql.connector
+import pymysql
 import pandas as pd
 from transform import (
     transform_routings,
@@ -14,13 +14,16 @@ from config import (
     CHILD_COUNT,
     INFANT_COUNT,
 )
+from dotenv import load_dotenv
 
 # =========================
 # MySQL connection
 # =========================
+load_dotenv()
 
-conn = mysql.connector.connect(
-    host=os.getenv("MYSQL_HOST", "localhost"),
+conn = pymysql.connect(
+    host=os.getenv("MYSQL_HOST", "127.0.0.1"),
+    port=int(os.getenv("MYSQL_PORT", "3307")),
     user=os.getenv("MYSQL_USER", "root"),
     password=os.getenv("MYSQL_PASSWORD"),
     database=os.getenv("MYSQL_DATABASE", "flight_price")
@@ -48,8 +51,6 @@ with open(raw_file, "r", encoding="utf-8") as f:
     
 routing_df = transform_routings(data)
 sector_df = transform_sectors(data)
-
-print(routing_df[["itinerary_key", "flight_key"]].head())
 
 print("Routing rows:", len(routing_df))
 print("Sector rows:", len(sector_df))

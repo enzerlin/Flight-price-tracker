@@ -325,10 +325,25 @@ def search_from_home(page, origin_code, destination_code, date_str):
     origin_name = city_name_map[origin_code]
     destination_name = city_name_map[destination_code]
     target_date = datetime.strptime(date_str, "%Y-%m-%d")
-
-    page.goto(URL)
+        
+    page.goto(URL, wait_until="domcontentloaded", timeout=30000)
     print("Browser opened.")
     page.wait_for_timeout(3000)
+
+    # 診斷目前載入的頁面
+    print("Current URL:", page.url)
+    print("Page title:", page.title())
+
+    if (
+        "hcaptcha.com" in page.url.lower()
+        or page.locator('iframe[src*="hcaptcha"]').count() > 0
+        or page.get_by_text("單程", exact=True).count() == 0
+    ):
+        page.screenshot(path="data/debug/homepage_diagnostic.png")
+        raise RuntimeError(
+            "首頁未顯示預期的單程搜尋選項，可能遇到驗證頁或網頁結構變更；"
+            "已儲存診斷截圖，停止本次搜尋。"
+        )
 
     # 單程
     page.get_by_text("單程", exact=True).click()
@@ -446,7 +461,7 @@ def main():
     failed = []
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         context = browser.new_context()
         page = context.new_page()
 

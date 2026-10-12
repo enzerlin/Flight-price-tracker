@@ -1,0 +1,61 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: flight-mysql
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Taipei
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: flight_price
+    command: [ "--default-time-zone=+08:00" ]
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-p$${MYSQL_ROOT_PASSWORD}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  pipeline:
+    build: .
+    image: flight-price-tracker:latest
+    env_file:
+      - .env
+    environment:
+      MYSQL_HOST: mysql
+      TZ: Asia/Taipei
+      MYSQL_PORT: "3306"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: [ "python", "src/run_pipeline.py" ]
+
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    image: flight-airflow:3.3.2
+    container_name: flight-airflow
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: Asia/Taipei
+      MYSQL_HOST: mysql
+      TZ: Asia/Taipei
+      MYSQL_PORT: "3306"
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: standalone
+
+volumes:
+  mysql_data:
+

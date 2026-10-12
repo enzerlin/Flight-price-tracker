@@ -2,18 +2,43 @@
 .venv/
 .airflow_venv/
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+.pytest_cache/
 
-# Environment variables
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
+*.pem
+*.key
 
 # Airflow
 airflow.db
+airflow.db-*
 .airflow/
+airflow.cfg
+simple_auth_manager_passwords.json.generated
+
+# Docker and local configuration
+.docker/
 
 # Raw / debug data
 data/raw/
 data/debug/
 
+# Local logs
+logs/
+*.log
+
+# Database backups and dumps
+*.sql
+*.dump
+*.bak
+
 # macOS
 .DS_Store
+
+# IDE
+.vscode/
+.idea/

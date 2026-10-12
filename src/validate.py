@@ -1,14 +1,14 @@
-import mysql.connector
+import pymysql
 import os
 
-conn = mysql.connector.connect(
+conn = pymysql.connect(
     host=os.getenv("MYSQL_HOST", "localhost"),
     user=os.getenv("MYSQL_USER", "root"),
     password=os.getenv("MYSQL_PASSWORD"),
     database=os.getenv("MYSQL_DATABASE", "flight_price")
 )
 
-cursor = conn.cursor(dictionary=True)
+cursor = conn.cursor(pymysql.cursors.DictCursor)
 
 
 # =========================

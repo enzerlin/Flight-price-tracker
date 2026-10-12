@@ -1,0 +1,11 @@
+.venv/
+.airflow_venv/
+__pycache__/
+*.py[cod]
+.env
+.git/
+.DS_Store
+airflow.db
+.airflow/
+data/raw/
+data/debug/

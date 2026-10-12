@@ -1,14 +1,17 @@
 import streamlit as st
-import mysql.connector
+import pymysql
 import pandas as pd
 import os 
+from dotenv import load_dotenv
 
 
 # =========================
 # MySQL
 # =========================
-conn = mysql.connector.connect(
-    host=os.getenv("MYSQL_HOST", "localhost"),
+load_dotenv()
+conn = pymysql.connect(
+    host=os.getenv("DASHBOARD_MYSQL_HOST", "127.0.0.1"),
+    port=int(os.getenv("DASHBOARD_MYSQL_PORT", "3307")),
     user=os.getenv("MYSQL_USER", "root"),
     password=os.getenv("MYSQL_PASSWORD"),
     database=os.getenv("MYSQL_DATABASE", "flight_price")
@@ -26,19 +29,30 @@ SELECT
     fs.airline,
     fr.departure_datetime,
     fr.arrival_datetime,
+
+    fs.departure_airport_code,
+    fs.departure_airport_name,
+    fs.arrival_airport_code,
+    fs.arrival_airport_name,
+
     fp.price,
     fp.collected_at,
     fse.search_id,
     fse.origin_city_code,
     fse.destination_city_code,
     fse.outbound_date
+
 FROM flight_routes fr
+
 JOIN flight_sectors fs
     ON fr.route_id = fs.route_id
+
 JOIN flight_prices fp
     ON fr.route_id = fp.route_id
+
 JOIN flight_searches fse
     ON fr.search_id = fse.search_id
+
 ORDER BY fp.collected_at
 """
 
@@ -128,19 +142,6 @@ latest_df = df[
 if latest_df.empty:
     st.warning("目前沒有最新的航班資料。")
     st.stop()
-# =========================
-# Route information
-# =========================
-
-origin = df.iloc[0]["origin_city_code"]
-destination = df.iloc[0]["destination_city_code"]
-flight_date = df.iloc[0]["departure_datetime"]
-
-st.caption(
-    f"{origin} → {destination}｜"
-    f"{pd.to_datetime(flight_date).strftime('%Y-%m-%d')}"
-)
-
 
 # =========================
 # Flight selector
@@ -158,6 +159,10 @@ flight_options_df = (
             "airline",
             "departure_datetime",
             "arrival_datetime",
+            "departure_airport_code",
+            "departure_airport_name",
+            "arrival_airport_code",
+            "arrival_airport_name",
             "itinerary_key"
         ]
     ]
@@ -190,6 +195,10 @@ flight_options_df["flight_label"] = (
     + " - "
     + flight_options_df["airline"]
     + "｜"
+    + flight_options_df["departure_airport_code"]
+    + " → "
+    + flight_options_df["arrival_airport_code"]
+    + "｜"
     + flight_options_df["departure_time"]
     + " → "
     + flight_options_df["arrival_time"]
@@ -207,6 +216,31 @@ selected_flight = st.selectbox(
 selected_option = flight_options_df[
     flight_options_df["flight_label"] == selected_flight
 ].iloc[0]
+
+
+# =========================
+# Selected route information
+# =========================
+
+origin_airport_code = selected_option["departure_airport_code"]
+origin_airport_name = selected_option["departure_airport_name"]
+
+destination_airport_code = selected_option["arrival_airport_code"]
+destination_airport_name = selected_option["arrival_airport_name"]
+
+flight_date = selected_option["departure_datetime"]
+
+st.subheader("航線")
+
+st.write(
+    f"**{origin_airport_name} ({origin_airport_code})**"
+    f" → "
+    f"**{destination_airport_name} ({destination_airport_code})**"
+)
+
+st.caption(
+    f"{pd.to_datetime(flight_date).strftime('%Y-%m-%d')}"
+)
 
 departure_time = pd.to_datetime(
     selected_option["departure_datetime"]

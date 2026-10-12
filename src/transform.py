@@ -199,11 +199,3 @@ if __name__ == "__main__":
 
     routing_df = transform_routings(data)
     sector_df = transform_sectors(data)
-
-    print("\n========== ROUTINGS ==========\n")
-    print(routing_df.head().to_string())
-    print("\nShape:", routing_df.shape)
-
-    print("\n========== SECTORS ==========\n")
-    print(sector_df.head(10).to_string())
-    print("\nShape:", sector_df.shape)
