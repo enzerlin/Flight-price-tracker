@@ -19,6 +19,7 @@ airflow.db-*
 .airflow/
 airflow.cfg
 simple_auth_manager_passwords.json.generated
+airflow_config/
 
 # Docker and local configuration
 .docker/

@@ -278,12 +278,26 @@ selected_df["collected_date"] = (
 )
 
 # ==============================
+# Price per query (每次查詢)
+# ==============================
+# 「目前價格 / 上次查詢」以每一次查詢（search_id）為單位，
+# 同一天查多次也會各自算一筆。
+
+per_query_df = (
+    selected_df
+    .groupby("search_id", as_index=False)
+    .agg(
+        collected_at=("collected_at", "min"),
+        price=("price", "min"),
+    )
+    .sort_values("collected_at")
+    .reset_index(drop=True)
+)
+
+# ==============================
 # Daily price aggregation
 # ==============================
-
-selected_df["collected_date"] = (
-    pd.to_datetime(selected_df["collected_at"]).dt.date
-)
+# 價格歷史圖仍然使用「每天最低價」。
 
 daily_price_df = (
     selected_df
@@ -296,11 +310,11 @@ daily_price_df = (
 # Price metrics
 # ==============================
 
-current_price = daily_price_df.iloc[-1]["price"]
-lowest_price = daily_price_df["price"].min()
+current_price = per_query_df.iloc[-1]["price"]
+lowest_price = per_query_df["price"].min()
 
-if len(daily_price_df) >= 2:
-    previous_price = daily_price_df.iloc[-2]["price"]
+if len(per_query_df) >= 2:
+    previous_price = per_query_df.iloc[-2]["price"]
 
     price_change = current_price - previous_price
 
@@ -359,22 +373,16 @@ with col3:
             delta=f"{price_change:+,} NT$ ({change_percent:+.2f}%)"
         )
 
-        st.caption(
-            f"上次查詢：NT$ {previous_price:,}"
-        )
-
     else:
         st.metric(
             "目前價格",
             f"NT$ {current_price:,}"
         )
 
-        st.caption("上次查詢：—")
-
 
 with col4:
 
-    if len(daily_price_df) >= 2:
+    if len(per_query_df) >= 2:
         st.metric(
             "上次查詢",
             f"NT$ {previous_price:,}"

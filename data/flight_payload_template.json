@@ -1,0 +1,23 @@
+{
+    "head": {
+        "clientID": "0317899958753487584x",
+        "transactionID": "xq63z28pjbpaz3kf",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "appid": "10101"
+    },
+    "data": {
+        "journeyType": 1,
+        "cabinType": "Any",
+        "airlineCode": "",
+        "adultCnt": 1,
+        "childCnt": 0,
+        "infantCnt": 0,
+        "isDirectFlight": false,
+        "outboundDate": "__DATE__",
+        "fromCityCode": "__ORIGIN__",
+        "toCityCode": "__DESTINATION__",
+        "fromAirportCode": "",
+        "toAirportCode": "",
+        "resourceType": "Ct"
+    }
+}

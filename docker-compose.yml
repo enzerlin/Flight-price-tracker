@@ -19,13 +19,15 @@ services:
       retries: 20
   pipeline:
     build: .
-    image: flight-price-tracker:latest
+    image: enzerlin/flight-price-tracker:latest
     env_file:
       - .env
     environment:
       MYSQL_HOST: mysql
       TZ: Asia/Taipei
       MYSQL_PORT: "3306"
+    volumes:
+      - ./data:/app/data
     depends_on:
       mysql:
         condition: service_healthy
@@ -35,7 +37,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.airflow
-    image: flight-airflow:3.3.2
+    image: enzerlin/flight-airflow:3.3.2
     container_name: flight-airflow
     restart: unless-stopped
     env_file:
@@ -51,6 +53,10 @@ services:
       MYSQL_PORT: "3306"
     ports:
       - "8080:8080"
+    volumes:
+      - ./airflow_config:/opt/airflow/config
+      - ./airflow_config/simple_auth_manager_passwords.json.generated:/opt/airflow/simple_auth_manager_passwords.json.generated
+      - ./data:/app/data
     depends_on:
       mysql:
         condition: service_healthy

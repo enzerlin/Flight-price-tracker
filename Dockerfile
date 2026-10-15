@@ -1,14 +1,9 @@
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
-
-# 安裝 Playwright Chromium 所需的系統依賴與瀏覽器
-RUN pip install --no-cache-dir playwright==1.63.0 \
-    && playwright install --with-deps chromium
 
 # 安裝專案 Python 套件
 COPY requirements.txt .

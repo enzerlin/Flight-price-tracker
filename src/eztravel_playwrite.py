@@ -20,6 +20,7 @@ ORIGIN_CODE = os.getenv("FLIGHT_ORIGIN", ORIGIN)
 DESTINATION_CODE = os.getenv("FLIGHT_DESTINATION", DESTINATION)
 OUTBOUND_DATE = os.getenv("FLIGHT_DATE", DEPARTURE_DATE)
 RETURN_DATE = os.getenv("FLIGHT_RETURN_DATE", "")  # 空字串 = 只搜去程
+PLAYWRIGHT_HEADLESS = os.getenv("PLAYWRIGHT_HEADLESS", "false").lower() not in {"0", "false", "no"}
 
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 POST_STEPS = ["transform.py", "load_mysql.py"]
@@ -58,6 +59,34 @@ def first_visible(locator):
         if item.is_visible():
             return item
     return None
+
+
+def is_verification_page(page):
+    """只偵測驗證頁；不操作或嘗試解答 CAPTCHA。"""
+    return (
+        "hcaptcha.com" in page.url.lower()
+        or page.locator('iframe[src*="hcaptcha"]').count() > 0
+        or page.get_by_text("Additional security check is required", exact=False).count() > 0
+        or page.get_by_text("請完成安全驗證以繼續瀏覽", exact=False).count() > 0
+    )
+
+
+def wait_for_manual_verification(page):
+    """在可見瀏覽器中由使用者完成驗證，按 Enter 後讓爬蟲繼續。"""
+    if not is_verification_page(page):
+        return
+    page.screenshot(path="data/debug/homepage_diagnostic.png")
+    if PLAYWRIGHT_HEADLESS:
+        raise RuntimeError(
+            "偵測到 hCaptcha / 安全驗證頁。無頭模式無法進行人工驗證；"
+            "請在本機互動終端以 PLAYWRIGHT_HEADLESS=false 執行，"
+            "再於開啟的瀏覽器手動完成驗證。"
+        )
+    print("偵測到安全驗證。請在瀏覽器視窗中親自完成驗證；完成後回到終端按 Enter。")
+    input()
+    page.wait_for_timeout(1500)
+    if is_verification_page(page):
+        raise RuntimeError("驗證頁仍然顯示，停止本次搜尋。")
 
 
 def make_response_handler():
@@ -334,11 +363,8 @@ def search_from_home(page, origin_code, destination_code, date_str):
     print("Current URL:", page.url)
     print("Page title:", page.title())
 
-    if (
-        "hcaptcha.com" in page.url.lower()
-        or page.locator('iframe[src*="hcaptcha"]').count() > 0
-        or page.get_by_text("單程", exact=True).count() == 0
-    ):
+    wait_for_manual_verification(page)
+    if page.get_by_text("單程", exact=True).count() == 0:
         page.screenshot(path="data/debug/homepage_diagnostic.png")
         raise RuntimeError(
             "首頁未顯示預期的單程搜尋選項，可能遇到驗證頁或網頁結構變更；"
@@ -461,7 +487,7 @@ def main():
     failed = []
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=PLAYWRIGHT_HEADLESS)
         context = browser.new_context()
         page = context.new_page()
 

@@ -2,6 +2,8 @@ import os
 import subprocess
 import sys
 from dotenv import load_dotenv
+import random
+import time
 
 
 load_dotenv()
@@ -29,7 +31,7 @@ def run_route(origin, destination):
     env["FLIGHT_RETURN_DATE"] = RETURN_DATE
 
     result = subprocess.run(
-        [sys.executable, "src/eztravel.py"],
+        [sys.executable, "src/eztravel_scraperapi.py"],
         env=env,
     )
 
@@ -43,7 +45,12 @@ def main():
         sys.exit(1)
 
     failures = []
-    for destination in DESTINATIONS:
+    for i, destination in enumerate(DESTINATIONS):
+        if i > 0:
+            wait = random.uniform(8, 20)
+            print(f"等待 {wait:.1f} 秒再跑下一條航線...")
+            time.sleep(wait)
+
         print("\n==============================")
         print(f"Running: {ORIGIN} ⇄ {destination}")
         print(f"去程 {OUTBOUND_DATE} | 回程 {RETURN_DATE or '(不搜)'}")

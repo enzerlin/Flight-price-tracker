@@ -1,36 +1,9 @@
 FROM apache/airflow:3.3.2
 
-USER root
-
-# 安裝 Playwright Chromium 執行所需的系統套件
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libnss3 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libx11-6 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libasound2 \
-    libxkbcommon0 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libatspi2.0-0 \
-    libglib2.0-0 \
-    libdrm2 \
-    libxshmfence1 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 USER airflow
 
-# 安裝專案需要的 Python 套件
-RUN pip install --no-cache-dir playwright==1.63.0 pymysql
-
-# 安裝 Chromium 瀏覽器
-RUN playwright install chromium
+# 安裝需要的 Python 套件
+RUN pip install --no-cache-dir pymysql requests python-dotenv
 
 WORKDIR /app
 
