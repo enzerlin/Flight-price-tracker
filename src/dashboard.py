@@ -10,11 +10,13 @@ from dotenv import load_dotenv
 # =========================
 load_dotenv()
 conn = pymysql.connect(
-    host=os.getenv("DASHBOARD_MYSQL_HOST", "127.0.0.1"),
-    port=int(os.getenv("DASHBOARD_MYSQL_PORT", "3307")),
-    user=os.getenv("MYSQL_USER", "root"),
-    password=os.getenv("MYSQL_PASSWORD"),
-    database=os.getenv("MYSQL_DATABASE", "flight_price")
+    host=os.environ["MYSQL_HOST"],
+    port=int(os.getenv("MYSQL_PORT", "3306")),
+    user=os.environ["MYSQL_USER"],
+    password=os.environ["MYSQL_PASSWORD"],
+    database=os.getenv("MYSQL_DATABASE", "flight_price"),
+    connect_timeout=10,
+    charset="utf8mb4"
 )
 
 

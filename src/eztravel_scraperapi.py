@@ -152,12 +152,19 @@ def debug_no_match(data, origin, destination, date):
 def fetch_leg(origin, destination, date):
     """回傳解析後的 JSON；失敗回傳 None。"""
     payload = build_payload(origin, destination, date)
+    print(
+        f"送出搜尋條件："
+        f"fromCityCode={payload['data'].get('fromCityCode')}, "
+        f"toCityCode={payload['data'].get('toCityCode')}, "
+        f"outboundDate={payload['data'].get('outboundDate')}"
+    )
     params = {
         "api_key": SCRAPERAPI_KEY,
         "url": API_URL,
         "render": "false",        # 內部 API 回 JSON，不需要渲染，最省點數
         "country_code": "tw",     # 用台灣 IP，行為最接近一般使用者
         "keep_headers": "true",   # 讓下面自訂的 headers 原樣轉送
+	"premium": "true",
     }
     headers = {
         "Content-Type": "application/json",
@@ -176,12 +183,36 @@ def fetch_leg(origin, destination, date):
                 SCRAPERAPI_ENDPOINT, params=params, headers=headers,
                 data=json.dumps(payload), timeout=70,
             )
-            print(f"[{origin}->{destination} {date}] attempt {attempt} status={resp.status_code}")
+            print(
+                f"[{origin}->{destination} {date}] "
+                f"attempt {attempt} status={resp.status_code}"
+            )
+
+            if resp.status_code != 200:
+                print(
+                    f"HTTP {resp.status_code} response: "
+                    f"{resp.text[:1500]}"
+                )
+
             if resp.status_code == 200:
                 data = resp.json()
+
+                if data.get("data") is None:
+                    print(
+                        f"API 回傳 data=null："
+                        f"{origin}->{destination}, {date}; "
+                        f"head={data.get('head')}"
+                    )
+                    debug_no_match(data, origin, destination, date)
+                    return None
+
                 if has_matching_routing(data, origin, destination, date):
                     return data
-                print("回應沒有符合這一段航線的班次（可能 payload 範本不對，或當天無班次）")
+
+                print(
+                    f"API 有資料，但航線比對失敗："
+                    f"{origin}->{destination}, {date}"
+                )
                 debug_no_match(data, origin, destination, date)
                 return None
         except (requests.RequestException, ValueError) as e:

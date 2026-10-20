@@ -17,7 +17,7 @@ def _is_on_time(**context):
 with DAG(
     dag_id="flight_price_tracker",
     start_date=pendulum.datetime(2026, 10, 1, tz="Asia/Taipei"),
-    schedule="0 21 * * *",
+    schedule="0 9 * * *",
     catchup=False,        # 不補跑錯過的排程
     max_active_runs=1,    # 同時只允許一次執行，避免重複消耗 ScraperAPI 點數
     tags=["flight", "price"],

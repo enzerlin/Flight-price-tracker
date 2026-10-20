@@ -2,8 +2,13 @@ FROM apache/airflow:3.3.2
 
 USER airflow
 
-# 安裝需要的 Python 套件
-RUN pip install --no-cache-dir pymysql requests python-dotenv
+# 安裝 Airflow MySQL metadata database 與 ETL 所需套件
+RUN pip install --no-cache-dir \
+    "mysqlclient" \
+    "pymysql>=1.1.1" \
+    "requests==2.34.2" \
+    "python-dotenv==1.2.3" \
+    "pandas==3.0.6"
 
 WORKDIR /app
 

@@ -45,6 +45,8 @@ def main():
         sys.exit(1)
 
     failures = []
+    successes = []
+
     for i, destination in enumerate(DESTINATIONS):
         if i > 0:
             wait = random.uniform(8, 20)
@@ -61,11 +63,23 @@ def main():
             failures.append(destination)
         else:
             print(f"SUCCESS: {ORIGIN} ⇄ {destination}")
+            successes.append(destination)
+
         print("==============================")
 
     if failures:
         print("Failed destinations:", ", ".join(failures))
+
+    print(f"成功航線數：{len(successes)} / {len(DESTINATIONS)}")
+
+    if not successes:
+        print("ERROR: 所有航線都失敗，Pipeline 判定失敗。")
         sys.exit(1)
+
+    if failures:
+        print("Pipeline 部分成功：保留失敗紀錄，繼續正常結束。")
+    else:
+        print("Pipeline 全部成功。")
 
 
 if __name__ == "__main__":
