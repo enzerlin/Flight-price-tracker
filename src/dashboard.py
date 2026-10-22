@@ -62,7 +62,11 @@ df = pd.read_sql(query, conn)
 
 conn.close()
 
-
+# 將價格採集時間 UTC 轉換成台灣時間
+df["collected_at"] = (
+    pd.to_datetime(df["collected_at"], utc=True)
+    .dt.tz_convert("Asia/Taipei")
+)
 # =========================
 # Page
 # =========================
